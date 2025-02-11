@@ -1,1 +1,30 @@
 <p>users works!</p>
+<div *ngIf="loading" class="loading">
+  Chargement des utilisateurs...
+</div>
+
+<div *ngIf="error" class="alert alert-danger">
+  {{ error }}
+</div>
+
+<div *ngIf="!loading && !error">
+  <h2>Liste des utilisateurs</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Email</th>
+        <th>Rôles</th>
+        <th>Identifiant</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.id }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.roles?.join(', ') || 'Aucun rôle' }}</td> <!-- Prise en compte des utilisateurs sans rôles -->
+        <td>{{ user.userIdentifier }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
