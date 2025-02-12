@@ -1,23 +1,42 @@
-// Créer un guard pour protéger les routes
-// src/app/guards/auth.guard.ts
-// Importation des modules nécessaires d'Angular
-import { inject } from '@angular/core';                  // Permet d'injecter des services dans une fonction
-import { Router, type CanActivateFn } from '@angular/router'; // Importation du type CanActivateFn et de Router pour gérer la navigation
-import { AuthService } from '../services/auth.service';  // Importation du service AuthService qui gère l'authentification
+import { inject } from '@angular/core';
+import { Router, type CanActivateFn } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
-// Définition du guard sous forme de fonction, de type CanActivateFn
 export const authGuard: CanActivateFn = (route, state) => {
-  // Injection du service AuthService pour vérifier si l'utilisateur est authentifié
   const authService = inject(AuthService);
-
-  // Injection du service Router pour rediriger l'utilisateur si nécessaire
   const router = inject(Router);
 
-  // Vérifie si l'utilisateur est authentifié en utilisant la méthode isAuthenticated() du service AuthService
+  // Vérifier si l'utilisateur est authentifié
   if (authService.isAuthenticated()) {
-    return true; // Si l'utilisateur est authentifié, on lui permet d'accéder à la route
+    let roles: string[] = [];
+
+    // Safely parse roles from localStorage
+    try {
+      const rolesData = localStorage.getItem('roles');
+      roles = rolesData ? JSON.parse(rolesData) : [];
+
+      // Validate that roles is actually an array
+      if (!Array.isArray(roles)) {
+        console.error('Roles data is not an array:', roles);
+        roles = [];
+      }
+    } catch (error) {
+      console.error('Error parsing roles from localStorage:', error);
+      // Clear invalid data
+      localStorage.removeItem('roles');
+      roles = [];
+    }
+
+    // Check admin access for users route
+    if (route.routeConfig?.path === 'users') {
+      return roles.includes('ROLE_ADMIN')
+        ? true
+        : router.createUrlTree(['/welcome']);
+    }
+
+    return true; // Allow access to other routes
   }
 
-  // Si l'utilisateur n'est pas authentifié, on le redirige vers la page de connexion
+  // Redirect to login if not authenticated
   return router.createUrlTree(['/login']);
 };

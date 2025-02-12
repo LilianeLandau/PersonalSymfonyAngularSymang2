@@ -22,7 +22,8 @@
       <tr *ngFor="let user of users">
         <td>{{ user.id }}</td>
         <td>{{ user.email }}</td>
-        <td>{{ user.roles?.join(', ') || 'Aucun rôle' }}</td> <!-- Prise en compte des utilisateurs sans rôles -->
+        <td>{{ user.roles.join(', ') || 'Aucun rôle' }}</td>
+        <!-- Prise en compte des utilisateurs sans rôles -->
         <td>{{ user.userIdentifier }}</td>
       </tr>
     </tbody>

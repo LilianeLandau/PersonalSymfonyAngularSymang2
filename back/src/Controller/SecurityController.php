@@ -1,7 +1,9 @@
 <?php
+// src/Controller/SecurityController.php
 
 namespace App\Controller;
 
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -10,7 +12,14 @@ use App\Entity\User;
 
 class SecurityController extends AbstractController
 {
-    #[Route('/api/login', name: 'api_login', methods: ['POST'])]
+    private JWTTokenManagerInterface $jwtManager;
+
+    public function __construct(JWTTokenManagerInterface $jwtManager)
+    {
+        $this->jwtManager = $jwtManager;
+    }
+
+    #[Route('/api/login2', name: 'api_login', methods: ['POST'])]
     public function login(#[CurrentUser] ?User $user): JsonResponse
     {
         if (null === $user) {
@@ -19,9 +28,17 @@ class SecurityController extends AbstractController
             ], 401);
         }
 
+        $token = $this->jwtManager->create($user);
+        $roles = $user->getRoles();
+
+        // Déterminer l'URL de redirection en fonction du rôle
+        $redirectUrl = in_array('ROLE_ADMIN', $roles) ? '/users' : '/welcome';
+
         return $this->json([
-            'user' => $user->getUserIdentifier(),
-            'roles' => $user->getRoles()
+            'token' => $token,
+            'roles' => $roles,
+            'redirectUrl' => $redirectUrl,
+            'email' => $user->getEmail()
         ]);
     }
 }

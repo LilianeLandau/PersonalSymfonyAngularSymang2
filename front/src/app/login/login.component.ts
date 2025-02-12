@@ -1,5 +1,3 @@
-
-// Créer un composant de connexion
 // src/app/login/login.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -27,8 +25,8 @@ import { AuthService } from '../services/auth.service';
           <input
             type="email"
             id="email"
-            name="username"
-            [(ngModel)]="credentials.username"
+            name="email"
+            [(ngModel)]="credentials.email"
             required
             class="form-control"
           />
@@ -100,7 +98,7 @@ import { AuthService } from '../services/auth.service';
 })
 export class LoginComponent {
   credentials = {
-    username: '',
+    email: '',
     password: ''
   };
   loading = false;
@@ -112,7 +110,7 @@ export class LoginComponent {
   ) {}
 
   onSubmit(): void {
-    if (!this.credentials.username || !this.credentials.password) {
+    if (!this.credentials.email || !this.credentials.password) {
       this.error = 'Veuillez remplir tous les champs';
       return;
     }
@@ -121,13 +119,22 @@ export class LoginComponent {
     this.error = '';
 
     this.authService.login(this.credentials).subscribe({
-      next: () => {
-        this.router.navigate(['/welcome']);
+      next: (response) => {
+        console.log('Login response:', response); // Debug
+        if (response.redirectUrl) {
+          // S'assurer que l'URL est valide
+          const url = response.redirectUrl.startsWith('/') ?
+            response.redirectUrl.substring(1) : response.redirectUrl;
+          console.log('Redirecting to:', url); // Debug
+          this.router.navigate([url]);
+        } else {
+          this.router.navigate(['welcome']);
+        }
       },
       error: (err) => {
+        console.error('Erreur de connexion:', err);
         this.error = 'Identifiants non reconnus';
         this.loading = false;
-        console.error('Erreur de connexion:', err);
       }
     });
   }
